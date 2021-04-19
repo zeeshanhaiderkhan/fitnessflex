@@ -32,7 +32,7 @@
                      <div class="col-1"> 
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-light active">
-                          <input type="radio" name="gender" id="female" value="Female" autocomplete="off" > Male
+                          <input type="radio" name="gender" id="male" value="Male" autocomplete="off" > Male
                         </label>
                         <label class="btn btn-secondary">
                           <input type="radio" name="gender" id="female" value="Female" autocomplete="off"> Female

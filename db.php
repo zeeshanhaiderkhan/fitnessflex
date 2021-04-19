@@ -47,7 +47,7 @@
 
         }
         public function changeBalance($id,$balance){
-            $this->query = "UPDATE clients SET balance= $balance WHERE id=$id;";
+            $this->query = "UPDATE clients SET balance='$balance' WHERE id=$id;";
             if (mysqli_query($this->conn,$this->query)) {
                return true;
             
@@ -70,7 +70,39 @@
             $this->query=substr_replace($this->query,"",-1);
             $this->query.=") VALUES (";
             foreach($values as $value){
+                
                 $this->query .= "'$value'".",";
+            }
+            $this->query = substr_replace($this->query,"",-1);
+            $this->query .= ")";
+
+            if (mysqli_query($this->conn,$this->query)) {
+                    $last_id = mysqli_insert_id($this->conn);
+
+                return $last_id;
+                
+             } 
+             echo mysqli_error($this->conn);
+             echo $this->query;
+            return 0;
+
+        }
+
+        public function insertIntoFees($table_name,$columns,$values){
+            $this->query = "INSERT INTO $table_name(";
+
+            foreach($columns as $column){
+                $this->query .= $column.",";
+            }
+           
+            $this->query=substr_replace($this->query,"",-1);
+            $this->query.=") VALUES (";
+            foreach($values as $value){
+                if($value=="CURDATE() + INTERVAL 7 DAY"){
+                    $this->query.="CURDATE() + INTERVAL 7 DAY,";
+                }
+                else{
+                $this->query .= "'$value'".",";}
             }
             $this->query = substr_replace($this->query,"",-1);
             $this->query .= ")";
@@ -95,6 +127,7 @@
             $this->query= "SELECT $attribute FROM $table_name WHERE id='$id'";
             return mysqli_query($this->conn,$this->query);
         }
+        
         public function getDataByContact($attribute,$contact){
             $this->query= "SELECT $attribute FROM clients WHERE contact='$contact'";
             return mysqli_query($this->conn,$this->query);
@@ -103,8 +136,12 @@
             return mysqli_fetch_row($this->getData("clients","balance",$id))[0];
         }
         
-        public function getFeeData($table_name,$attribute,$id){
-            $this->query= "SELECT $attribute FROM $table_name WHERE clientID='$id'";
+        public function getFeeData($table_name,$attribute,$id,$paid){
+            $this->query= "SELECT $attribute FROM $table_name WHERE clientID='$id' AND paid='$paid'";
+            return mysqli_query($this->conn,$this->query);
+        }
+        public function payInvoice($id,$receivedBy){
+            $this->query= "UPDATE fees SET received=(SELECT (monthly+training-discount-adjustment) FROM fees WHERE id='$id'), received_by='$receivedBy', paid='1' WHERE id='$id'";
             return mysqli_query($this->conn,$this->query);
         }
         public function getByCNIC($table_name,$attribute,$cnic){

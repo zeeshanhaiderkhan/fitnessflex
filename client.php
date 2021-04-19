@@ -5,7 +5,9 @@
  $db->connect("FitnessFlex");
 
     $conn=$db->getConn();
-   
+
+    
+
     if(isset($_GET['search'])){
         $userID = $_GET["search"];
         $user_data =  $db->getData("clients","*",$userID);
@@ -16,25 +18,42 @@
         $user_data =  $db->getDataByContact("*",$userID);
         
     }
+    
     $client = mysqli_fetch_row($user_data);
     $userID =$client[0];
 
 
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
+      if(isset($_POST['paid'])){
       
+        $db->payInvoice($_POST['paid'],$_POST['receivedBy']);
+        echo "<meta http-equiv='refresh' content='0'>";
+      }
+      else{
             $monthly = $_POST["monthly"];
             $training = $_POST["training"];
             $discount =$_POST["discount"];
             $received = $_POST["received"];
             $adjustment = $_POST["adjustment"];
             $balance = $_POST["balance"];
-            $receivedBy = $_POST["receivedBy"];
+            $generatedBy = $_POST["generatedBy"];
             $clientID = $_POST["clientID"];
-    
-           $invoice_id = $db->insertInto("fees",
-             ["monthly","training","discount","received","adjustment","balance","received_by","clientID"],
-             [$monthly,$training,$discount,$received,$adjustment,$balance,$receivedBy,$clientID]
-                   );  
+            $notes = $_POST["notes"];
+            $isPaid = $_POST["isPaid"];
+
+            if($isPaid=="1"){
+              $invoice_id = $db->insertInto("fees",
+              ["monthly","training","discount","received","adjustment","balance","generated_by","received_by","clientID","notes","paid"],
+              [$monthly,$training,$discount,$received,$adjustment,$balance,$generatedBy,$generatedBy,$clientID,$notes,"1"]
+                    ); 
+            }
+            else{
+              $invoice_id = $db->insertIntoFees("fees",
+              ["monthly","training","discount","received","adjustment","balance","generated_by","clientID","notes","paid","due_date"],
+              [$monthly,$training,$discount,"0",$adjustment,$balance,$generatedBy,$clientID,$notes,"0","CURDATE() + INTERVAL 7 DAY"]
+                    ); 
+            }
+            
            
                    $currentBalance = (int) $db->getBalance($clientID);
             
@@ -44,7 +63,7 @@
                                 $currentBalance+$balanceB);
             
             echo "<meta http-equiv='refresh' content='0'>";
-            
+          } 
 
         }
 ?>
@@ -71,8 +90,8 @@
       <div class = "jumbotron container" style=" border-radius: 10px;">
         
       <!--Profile Card-->
-      <div class="col-md-8">
-              <div class="card mb-3">
+      <div class="card-group col">
+              <div class="card md-3">
                 <div class="card-body" >
 
                 <div class="row">
@@ -146,16 +165,6 @@
 
                   <div class="row">
                     <div class="col-sm-3">
-                      <h6 class="mb-0">Address</h6>
-                    </div>
-                    <div class="col-sm-9 text-secondary">
-                    <?php echo $client[12]; ?>
-                    </div>
-                  </div>
-                  <hr>
-
-                  <div class="row">
-                    <div class="col-sm-3">
                       <h6 class="mb-0">DOJ</h6>
                     </div>
                     <div class="col-sm-9 text-secondary">
@@ -215,6 +224,51 @@
                 </div>
               </div>
 <br>
+<div class="card mb-3">
+  <div class="card-body" >
+   
+
+      <div class="row">
+          <div class="col-lg-8 text-light" >
+          <h2 style="background-color: red; padding: 2px 2px 2px 2px;">
+         Unpaid Invoices</h2>
+          </div>
+        </div>
+        <hr>
+        <div class="overflow-auto">
+          
+<table class="table table-striped table-hover">
+          <tbody>
+          <?php 
+           $unpaidInv = $db->getFeeData("fees","id,due_date,generated_by, monthly+training-discount-adjustment as total",$userID,0);
+            
+           while($row = mysqli_fetch_row($unpaidInv)){
+            echo "<tr>";
+            foreach($row as $r) echo "<td>$r</td>";
+            echo "<td><form method=\"POST\" action=\"client.php?search=$userID\"><div class=\"form-floating mb-3\"><input style=\"background-color: yellowgreen;\" type=\"text\" class=\"form-control\" name=\"receivedBy\" id=\"receivedBy\" placeholder=\"Shozib/Imran\"  required><label for=\"receivedBy\">Received By</label></div><button name=\"paid\" id=\"paid\" type=\"submit\" value=\"$row[0]\" class=\"btn btn-outline-primary\">Paid</button></form></td>";
+            echo "<td> <button type=\"button\" class=\"btn btn-primary\" onclick=\"location.href='invoice.php?id=$row[0]'\">View</button></td>";
+            echo "</tr>";
+            }
+         
+           /* while ($row= mysqli_fetch_row($unpaidInv)){
+            echo "<div class="list-group"><a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start active\"><div class=\"d-flex w-100 justify-content-between\">";
+            echo "<h5 class=\"mb-1\">Invoice ID : $row[0]</h5><small>$row[1]</small></div>";
+            echo "<h4> Total : Rs. $row[3]</h4>";
+            echo "<small>$row[2]</small></a>";
+          }*/
+
+          ?>
+          </tbody>
+</table>
+
+  
+</div>
+
+
+        </div>
+
+        
+  </div></div>
     </div>
     <br><hr>
       <!---Form for Adding Fee-->
@@ -275,7 +329,7 @@
                 </div>
                 <div class="col-2">
                     <div class="form-floating mb-3">
-                        <input style="background-color: yellowgreen;" type="number" class="form-control" name="balance" id="balance" value="0" placeholder="0" disabled required>
+                        <input style="background-color: yellowgreen;" type="number" class="form-control" name="balance" id="balance" value="0" placeholder="0" readonly required>
                         <label for="balance">Balance</label>
                         </div>
                 
@@ -283,11 +337,36 @@
                     
                         <div class="col-6">
                             <div class="form-floating mb-3">
-                                <input style="background-color: yellowgreen;" type="text" class="form-control" name="receivedBy" id="receivedBy" placeholder="Shozib/Imram"  required>
-                                <label for="receivedBy">Received By</label>
+                                <input style="background-color: yellowgreen;" type="text" class="form-control" name="generatedBy" id="generatedBy" placeholder="Shozib/Imran"  required>
+                                <label for="generatedBy">Generated By</label>
                                 </div>
+
+                                
                         
                             </div>
+
+                            <div class="col-6">
+                            <div class="form-floating mb-3">
+                                <input style="background-color: yellowgreen;" type="text" class="form-control" name="notes" id="notes" placeholder="Write Something Here"  >
+                                <label for="notes">Notes</label>
+                                </div>
+
+                                
+                        
+                            </div>
+                           
+                     <div class="col-6"> 
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-primary ">
+                          <input type="radio" name="isPaid" id="notPaid" value="0" autocomplete="off" > not Paid
+                        </label>
+                        <label class="btn btn-secondary">
+                          <input type="radio" name="isPaid" id="isPaid" value="1" autocomplete="off"> is Paid
+                        </label>
+                      </div>
+
+                    </div>
+                
                             <div class="col-2">
                                 <div class="form-floating mb-3">
                                     <button type="submit" class="btn btn-primary btn-lg">Submit Fee</button>
@@ -330,7 +409,7 @@
         <hr>
         <br>
         <?php 
-            $client_fee =$db->getFeeData("fees","*",$userID);
+            $client_fee =$db->getFeeData("fees","*",$userID,1);
 
         ?>
         
@@ -348,6 +427,10 @@
             <th scope="col">Balance</th>
             <th scope="col">Client ID</th>
             <th scope="col">Received By </th>
+            <th scope="col">Due Date </th>
+            <th scope="col">Notes </th>
+            <th scope="col">Generated By </th>
+            <th scope="col">Client ID </th>
             </tr>
         </thead>
         <tbody>
