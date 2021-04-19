@@ -7,7 +7,7 @@
     <body>
         <?php include "includes/navigation.php"; ?>
         
-        <div class="container jumbotron"> <h1>Update Soon</h1></div>
+        
         
 <?php include "db.php"; ?>
             <?php 
@@ -26,16 +26,16 @@
   <div class="card-header">Total Clients</div>
   <div class="card-body">
     <h1 class="card-title"><?php echo $db->getN("clients"); ?></h1>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-  </div>
+  <!---  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+--></div>
 </div>
 
 <div class="card text-white bg-dark" style="margin:10px 10px 10px 10px; max-width: 18rem;">
   <div class="card-header">Total Received</div>
   <div class="card-body">
     <h1 class="card-title"><?php echo "Rs. ".$db->getNet("fees","received"); ?></h1>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-  </div>
+   <!---  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+--></div>
 </div>
 
 
@@ -49,16 +49,16 @@
   <div class="card-header">Today Clients</div>
   <div class="card-body">
     <h1 class="card-title"><?php echo $db->getNToday("clients"); ?></h1>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-  </div>
+   <!---  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+--></div>
 </div>
 
 <div class="card text-white bg-dark" style="margin:10px 10px 10px 10px; max-width: 18rem;">
   <div class="card-header">Today Received</div>
   <div class="card-body">
     <h1 class="card-title"><?php echo "Rs. ".$db->getNetToday("fees","received");?></h1>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-  </div>
+   <!---  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+--></div>
 </div>
 
 
@@ -106,12 +106,12 @@ var myChart = new Chart(ctx, {
       </div>
     </div>
     
-    <div class="card text-white bg-dark" style="margin:10px 10px 10px 10px; max-width: 18rem;">
+   <!--- <div class="card text-white bg-dark" style="margin:10px 10px 10px 10px; max-width: 18rem;">
       <div class="card-header">Today Received</div>
       <div class="card-body">
         <h1 class="card-title">TEST</h1>
-        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-      </div>
+   <!---  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+   </div>-->
     </div>
     
     
